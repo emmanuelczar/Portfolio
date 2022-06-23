@@ -1,0 +1,101 @@
+---
+title: "R Notebook"
+author: "Emmanuel Czar B. Pascua"
+output: html_notebook
+---
+
+
+# **IBM HR Analysis**
+#### A data exploration case study 
+#
+#
+#
+#### **First, let's install some useful packages**
+
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+
+```{r message=FALSE, warning=FALSE}
+install.packages("tidyverse")
+install.packages("janitor")
+install.packages("here")
+install.packages("skimr")
+library(tidyverse)
+library(janitor)
+library(here)
+library(skimr)
+```
+
+#### **Let's now load our downloaded csv file from kaggle.com**
+```{r}
+setwd("D:/FILES/DATA ANALYTICS/PORTFOLIO/IBM HR analytics")
+ibm_hr <- read_csv("HR_Employee_Attrition.csv")
+head(ibm_hr)
+```
+
+#### **Let's now clean our data.**
+Check for duplicates. This code will return True if unique employee numbers are equal to total number of rows
+```{r}
+length(unique(ibm_hr$EmployeeNumber)) == nrow(ibm_hr)
+```
+Check for missing values
+```{r}
+valmissing <- na.omit(ibm_hr)
+
+if(nrow(valmissing) == nrow(ibm_hr)){
+print("There are 0 missing values in the data")
+}
+```
+
+It looks like we don't have null values since we still have the original number of rows.
+
+#### **Find correlation**
+Try to find correlation in our data set but first we have to drop non-numeric columns including arbitrary and non ordinal data such as EmployeeNumber and EmployeeCount. 
+
+```{r}
+ibm_hr_num <- ibm_hr[sapply(ibm_hr, is.numeric)]
+
+ibm_hr_nl <- subset(ibm_hr_num, select = -c(EmployeeNumber,EmployeeCount))
+head(ibm_hr_nl)
+```
+```{r}
+install.packages("ggcorrplot")
+library(ggcorrplot)
+data(ibm_hr_nl)
+corr <- round(cor(ibm_hr_nl), 1)
+ggcorrplot(corr, legend.title = "Correlation Legend")
+```
+
+#### **Let's now use ggplot2 package for the visualization to check for attrition rate across different variables**
+
+```{r}
+ggplot(ibm_hr, aes(x = Attrition)) +
+  geom_bar()
+```
+
+
+```{r}
+#Generate visuals to compare attrition using different variables 
+ggplot(ibm_hr, aes(Department, fill=Attrition))+ geom_bar(position="dodge2")
+ggplot(ibm_hr, aes(BusinessTravel, fill=Attrition))+ geom_bar(position="dodge2")
+ggplot(ibm_hr, aes(EducationField, fill=Attrition))+ geom_bar(position="dodge2")
+ggplot(ibm_hr, aes(DistanceFromHome, fill=Attrition))+ geom_bar(position="dodge2")
+ggplot(ibm_hr, aes(EnvironmentSatisfaction, fill=Attrition))+ geom_bar(position="dodge2")
+ggplot(ibm_hr, aes(Gender, fill=Attrition))+ geom_bar(position="dodge2")
+```
+#### **Some observations on the visuals**
+
+1. *Department* : Highest attrition in R&D, lowest in HR.
+2. *Business Travel*: Highest attrition are those who travel rarely
+3. *Education Field*: Highest attrition rate are those in life sciences but could be because LS make up majority of all employees.
+4. *Distance from home*: no observed trend
+5. *Environment satisfaction*: as expected, highest number of attrition came from those who rated poorly
+6. *Gender*: Male employees left the make up the majority of the attrition count but could be because male dominates the majority of the total sample
+
+
+
+
+
+
